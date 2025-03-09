@@ -1,7 +1,7 @@
 /******************************************************* 
  * @Author: your name
  * @Date: 2025-03-06 10:24:04
- * @LastEditTime: 2025-03-07 15:39:57
+ * @LastEditTime: 2025-03-09 17:22:10
  * @LastEditors: your name
  * @Description: 
  * @FilePath: \GD_Test\Application\Src\rs485.c
@@ -70,3 +70,75 @@ void usart_send(uint32_t usart_periph, uint8_t* data, uint16_t len)
 }
 
 
+void send_modbus_request(uint16_t slave_id,uint8_t Func_code, uint8_t Reg_Hig, uint8_t Reg_Low)
+{
+	uint8_t request[8];
+    request[0] = slave_id;         // 从机地址
+    request[1] = Func_code;             // 功能码 (读取保持寄存器)
+    request[2] = Reg_Hig;             // 寄存器地址高字节
+    request[3] = Reg_Low;             // 寄存器地址低字节
+    request[4] = 0x00;             // 寄存器数量高字节
+    request[5] = 0x02;             // 寄存器数量低字节
+	CRC16_Send(request, 6);
+    usart_send(USART5, request, 8);
+	printf("send: %02x %02x %02x %02x %02x %02x %02x %02x\n",request[0],request[1],request[2],request[3],request[4],request[5],request[6],request[7]);
+}
+
+// 接收数据并校验
+double check_received_data(uint8_t type)
+{
+    uint8_t received_status = 0;
+    double re_data          = 0;
+    // while (1) {
+    if (usart_recv_length > 0) {
+		for (uint8_t i = 0; i < usart_recv_length; i++) {
+			printf("0x%02x ", usart_recv_buf[i]);
+		}
+        // crc check
+        received_status = CRC16_Rec(usart_recv_buf,usart_recv_length);
+		
+        if (received_status == 0) {
+            printf("crc check failed!\r\n");
+			usart_recv_length = 0;
+            memset(&usart_recv_buf[0], 0, sizeof(usart_recv_buf));
+            return -1;
+        }
+        if (received_status == 1) {
+            received_status = 0;
+            switch (type) {
+                case float_type_asend:
+                    /* code */
+                    re_data = analyze_in_queue_float(usart_recv_buf, usart_recv_length);
+                    break;
+                case float_type_desend:
+                    re_data = analyze_not_in_queue_float(usart_recv_buf, usart_recv_length);
+                    break;
+                case uint32_t_type_asend:
+                    /* code */
+                    re_data = analyze_in_queue_uint32(usart_recv_buf,usart_recv_length);
+                    break;
+                case uint32_t_type_desend:
+                    re_data = analyze_not_in_queue_uint32(usart_recv_buf, usart_recv_length);
+                    break;
+                case double_type_asend:
+                    re_data = analyze_in_queue_double(usart_recv_buf, usart_recv_length);
+                    break;
+                case double_type_desend:
+                    re_data = analyze_not_in_queue_double(usart_recv_buf, usart_recv_length);
+                    break;
+                default:
+                    break;
+            }
+            printf("crc check succeed!\r\n");
+            // 清空缓存 重启中断
+			usart_recv_length = 0;
+            memset(&usart_recv_buf[0], 0, sizeof(usart_recv_buf));
+            return re_data;
+        }
+	}
+    else {
+        printf("no data received!\r\n");       
+    }
+      return 0;
+        // break;
+    }

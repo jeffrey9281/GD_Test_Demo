@@ -181,10 +181,18 @@ void USART5_IRQHandler(void)
     if (RESET != usart_interrupt_flag_get(USART5, USART_INT_FLAG_IDLE)) // USART_INT_FLAG_IDLE:IDLE线检测中断标志
     {
         usart_interrupt_flag_clear(USART5, USART_INT_FLAG_IDLE);
+        usart_data_receive(USART5); /* 清除接收完成标志位 */ //！！！！！！！！！！！！！！！！！！！不加这个函数退不出中断
+        // (void)LOS_EventWrite(&g_shellInputEvent, 0x1); //事件通知接收完成
         if (usart_recv_count > 0) // 接收到一帧数据
         {
             usart_recv_length = usart_recv_count;            // 接收数据长度
+            printf ("recv length:%d\r\n", usart_recv_length); // 打印接收数据长度
             usart_recv_count  = 0;                           // 接收数据个数清零
         }
+    }
+
+    if(usart_interrupt_flag_get(USART5, USART_INT_FLAG_RBNE_ORERR) != RESET)
+    {
+        usart_interrupt_flag_clear(USART5, USART_INT_FLAG_RBNE_ORERR);
     }
 }

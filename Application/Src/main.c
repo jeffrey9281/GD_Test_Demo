@@ -35,6 +35,7 @@ OF SUCH DAMAGE.
 #include "rs485.h"
 #include "gd32f4xx_it.h"
 #include "crc.h"
+#include "analyze_data.h"
 #include "gd32f4xx.h"
 #include "systick.h"
 #include <stdio.h>
@@ -78,23 +79,22 @@ int main(void)
     // usart_send(USART5, (uint8_t[]){0x7F, 0x04, 0x0a, 0x0f, 0x00, 0x02, 0x48, 0x0e}, sizeof((uint8_t[]){0x7F, 0x04, 0x0a, 0x0f, 0x00, 0x02, 0x48, 0x0e}));
     /* wait for completion of USART transmission */
 
-    // 7F 04 04 BA 93 40 0C
-    uint8_t test[7]={0x7f, 0x04, 0x04, 0x00, 0x00, 0x41, 0x30};
-    CRC16_Send(test, 0x7);
-    for(int i = 0; i < 0x9; i++) {
-        printf("%02x ", test[i]);
-    }
-    uint8_t crc;
-    printf("crc:%d\r\n",crc = CRC16_Rec(test, 0x9));
-
+    // uint8_t test[] = {0x7F, 0x04, 0x0a, 0x0f, 0x00, 0x02};
+    
     while (1) {
-
-        if (usart_recv_length > 0) {
-            for (uint8_t i = 0; i < usart_recv_length; i++) {
-                printf("0x%02x ", usart_recv_buf[i]);
-            }
-            usart_recv_length = 0;
-        }
+        float data_test = 0.0;
+        delay_1ms(3000);
+        send_modbus_request(0x7f, 0x04, 0x0a, 0x0f);
+        delay_1ms(3000);
+        printf("test! \r\n");
+        data_test = check_received_data(float_type_desend);
+        printf ("data_test: %f \r\n", data_test);
+        // if (usart_recv_length > 0) {
+        //     for (uint8_t i = 0; i < usart_recv_length; i++) {
+        //         printf("0x%02x ", usart_recv_buf[i]);
+        //     }
+        //     usart_recv_length = 0;
+        // }
     }
 }
 
