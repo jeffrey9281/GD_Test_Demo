@@ -1,3 +1,12 @@
+/******************************************************* 
+ * @Author: your name
+ * @Date: 2025-03-05 11:07:45
+ * @LastEditTime: 2025-03-13 12:18:07
+ * @LastEditors: your name
+ * @Description: 
+ * @FilePath: \GD_Test\Application\Src\main.c
+ * @可以输入预定的版权声明、个性签名、空行等
+ *******************************************************/
 /*!
     \file    main.c
     \brief   USART printf demo
@@ -45,7 +54,6 @@ OF SUCH DAMAGE.
 void led_init(void);
 void led_flash(int times);
 
-
 /*!
     \brief      main function
     \param[in]  none
@@ -54,14 +62,8 @@ void led_flash(int times);
 */
 int main(void)
 {
-    /* initialize the LEDs */
-    led_init();
-
     /* configure systick */
     systick_config();
-
-    /* flash the LEDs for 1 time */
-    led_flash(1);
 
     /* configure EVAL_COM0 */
     gd_eval_com_init(EVAL_COM0);
@@ -69,87 +71,23 @@ int main(void)
     // 485串口检测
     RS485_com_init(RS485_COM5);
 
-    // 雨量计电源
+    // 水位计电源使能
     RS485_power_init();
     RS485_power_on();
 
-    /* configure TAMPER key */
-    // gd_eval_key_init(KEY_TAMPER, KEY_MODE_GPIO);
-
-    /* output a message on hyperterminal using printf function */
-    // printf("test! \r\n");
-
-    // usart_send(USART5, (uint8_t[]){0x7F, 0x04, 0x0a, 0x0f, 0x00, 0x02, 0x48, 0x0e}, sizeof((uint8_t[]){0x7F, 0x04, 0x0a, 0x0f, 0x00, 0x02, 0x48, 0x0e}));
-    /* wait for completion of USART transmission */
-
-    // uint8_t test[] = {0x7F, 0x04, 0x0a, 0x0f, 0x00, 0x02};
-    
+    // 抬头
     Title_printf();
 
-    Water_Gauge_Manual(); 
-    
+    // 参数设置
+    Water_Gauge_Manual();
+
     while (1) {
 
-        /******
-        float data_test = 0.0;
-        delay_1ms(3000);
-        send_modbus_request(0x7f, 0x04, 0x0a, 0x0f);
-        delay_1ms(3000);
-        printf("test! \r\n");
-        data_test = check_received_data(float_type_desend);
-        printf ("data_test: %f \r\n", data_test);
-        // if (usart_recv_length > 0) {
-        //     for (uint8_t i = 0; i < usart_recv_length; i++) {
-        //         printf("0x%02x ", usart_recv_buf[i]);
-        //     }
-        //     usart_recv_length = 0;
-        // }
-        ******/     
-       
-      auto_analyze_rs485();  
-
+        auto_analyze_rs485();  // 读取水位数据
     }
+
 }
 
-/*!
-    \brief      initialize the LEDs
-    \param[in]  none
-    \param[out] none
-    \retval     none
-*/
-void led_init(void)
-{
-    gd_eval_led_init(LED1);
-    gd_eval_led_init(LED2);
-    gd_eval_led_init(LED3);
-}
-
-/*!
-    \brief      flash the LEDs for test
-    \param[in]  times: times to flash the LEDs
-    \param[out] none
-    \retval     none
-*/
-void led_flash(int times)
-{
-    int i;
-    for (i = 0; i < times; i++) {
-        /* delay 400 ms */
-        delay_1ms(400);
-
-        /* turn on LEDs */
-        gd_eval_led_on(LED1);
-        gd_eval_led_on(LED2);
-        gd_eval_led_on(LED3);
-
-        /* delay 400 ms */
-        delay_1ms(400);
-        /* turn off LEDs */
-        gd_eval_led_off(LED1);
-        gd_eval_led_off(LED2);
-        gd_eval_led_off(LED3);
-    }
-}
 
 /* retarget the C library printf function to the USART */
 int fputc(int ch, FILE *f)

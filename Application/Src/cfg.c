@@ -11,7 +11,6 @@
 
 #define Water_Gauge_Adrr     0x7F
 #define Water_Gauge_Function 0x04
-// uint8_t Water_Gauge_Fix_Hight_Reg[2] = {0x0A, 0x0F};
 bool Getmode; // true:自动获取数据  false:手动设置数据
 
 ModbusWriteParams writeParams_FixHeight = {
@@ -118,21 +117,18 @@ void Water_Gauge_Manual()
 
 void analyze_debug_recv_buf_float()
 {
-    // 打印数组内容
-    char str[debug_recv_length];
-    memcpy(str, &debug_recv_buf[0], debug_recv_length); // 将debug_recv_buf数组中的数据复制到str缓冲区
-    str[debug_recv_length] = '\0';                      // 添加字符串结束符
-    float f                = atof(str);                 // 将字符串转换为浮点数
-    uint8_t buffer[4];                                  // 用于存储16进制浮点数的缓冲区
-    memcpy(buffer, &f, sizeof(f));                      // 将浮点数转换为16进制浮点数
-    printf("设置安装高度为: %f\n", f);
-    printf("\r\n");
-    printf("\r\n");
+    uint8_t buffer[4]; // 缓存数组
+    float f = 0;
+    transfer_string_to_hex(debug_recv_buf, buffer, debug_recv_length); // 将串口接收的string转换为四字节16进制数组
     // 485配置安装高度
     writeParams_FixHeight.data[0] = buffer[1];
     writeParams_FixHeight.data[1] = buffer[0];
     writeParams_FixHeight.data[2] = buffer[3];
     writeParams_FixHeight.data[3] = buffer[2];
+    memcpy(&f, buffer, sizeof(float));
+    printf("设置安装高度为: %f\n", f);
+    printf("\r\n");
+    printf("\r\n");
     send_modbus_write(&writeParams_FixHeight);
     delay_1ms(1500);
     if (usart_recv_length > 0) // 485串口接收到一帧数据
@@ -150,11 +146,7 @@ void analyze_debug_recv_buf_float()
 void analyze_debug_recv_buf_uint16()
 {
     int16_t period_value = 0;
-    for (int i = 0; i < debug_recv_length; i++) {
-        printf("%c", debug_recv_buf[i]);
-        debug_recv_buf[i] = debug_recv_buf[i] - '0';                                                 // 将字符转换为对应的数字
-        period_value      = period_value + (debug_recv_buf[i] * pow(10, debug_recv_length - i - 1)); // 16位数据格式
-    }
+    transfer_string_to_uint16(debug_recv_buf, &period_value, debug_recv_length);
     printf("推送周期：%d设置成功\r\n", period_value);
     uint8_t high_byte          = (period_value >> 8) & 0xFF; // 获取高8位
     uint8_t low_byte           = period_value & 0xFF;        // 获取低8位
@@ -172,14 +164,11 @@ void analyze_debug_recv_buf_uint16()
         }
     }
     debug_buf_clear();
-
     // 增加修改文本协议为modbus协议
     uint8_t str[] = "AT+PROTOCOLTYPE=0\n";
-
     usart_send_string(USART5, str);
-
+    // 开启自动解析
     Getmode = true;
-    printf("Getmode = %d\r\n", Getmode);
 }
 
 void auto_analyze_rs485()
@@ -198,5 +187,22 @@ void auto_analyze_rs485()
             }
             rs485_buf_clear();
         }
+    }
+}
+
+void transfer_string_to_hex(uint8_t *string_buffer, uint8_t *hex_buffer, int length)
+{
+    char str[length];
+    memcpy(str, &string_buffer[0], length); // 将数组中的数据复制到str缓冲区
+    str[length] = '\0';          // 添加字符串结束符
+    float f                = atof(str);     // 将字符串转换为浮点数
+    memcpy(hex_buffer, &f, sizeof(f));             // 将浮点数转换为16进制数组
+}
+
+void transfer_string_to_uint16(uint8_t *string_buffer, uint16_t *value, int length)
+{
+    for (int i = 0; i < length; i++) {
+        string_buffer[i] = string_buffer[i] - '0';                                                 // 将字符转换为对应的数字
+        *value    += (string_buffer[i] * pow(10, length - i - 1)); // 16位数据格式       
     }
 }

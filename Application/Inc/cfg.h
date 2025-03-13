@@ -1,7 +1,7 @@
 /******************************************************* 
  * @Author: your name
  * @Date: 2025-03-11 16:52:38
- * @LastEditTime: 2025-03-13 11:12:16
+ * @LastEditTime: 2025-03-13 13:01:28
  * @LastEditors: your name
  * @Description: 
  * @FilePath: \GD_Test\Application\Inc\cfg.h
@@ -18,10 +18,13 @@
 #include <math.h>
 #include "crc.h"
 #include "analyze_data.h"
+#include "systick.h"
 
 void Water_Gauge_Manual(void);
 void analyze_debug_recv_buf_float();
 void analyze_debug_recv_buf_uint16();
 void Title_printf();
 void auto_analyze_rs485(); //自动解析接收缓冲区数据
+void transfer_string_to_hex(uint8_t *string_buffer, uint8_t *hex_buffer, int length);
+void transfer_string_to_uint16(uint8_t *string_buffer, uint16_t *value, int length);
 #endif // DEBUG
