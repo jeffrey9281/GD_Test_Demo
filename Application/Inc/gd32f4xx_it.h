@@ -38,8 +38,13 @@ OF SUCH DAMAGE.
 #include "gd32f4xx.h"
 
 #define USART_RECV_BUF_SIZE 256// 接收缓存区大小
+
 extern uint16_t usart_recv_length;                  // 接收数据长度
 extern uint8_t usart_recv_buf[USART_RECV_BUF_SIZE];// 接收缓存区
+
+extern uint16_t debug_recv_length;                  // 接收数据长度
+extern uint8_t debug_recv_buf[USART_RECV_BUF_SIZE];// 接收缓存区
+
 
 /* function declarations */
 /* this function handles NMI exception */

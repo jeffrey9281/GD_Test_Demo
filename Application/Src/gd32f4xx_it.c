@@ -48,9 +48,16 @@ OF SUCH DAMAGE.
 #include <string.h>
 #include "rs485.h"
 
+// 485缓存区
 uint8_t usart_recv_buf[USART_RECV_BUF_SIZE] = {0}; // 接收缓存区
 uint16_t usart_recv_count                   = 0;   // 接收数据个数
 uint16_t usart_recv_length                  = 0;   // 接收数据长度
+
+// debug缓存区
+uint8_t debug_recv_buf[USART_RECV_BUF_SIZE] = {0}; // 接收缓存区
+uint16_t debug_recv_count                   = 0;   // 接收数据个数
+uint16_t debug_recv_length                  = 0;   // 接收数据长度
+
 
 /*!
     \brief      this function handles NMI exception
@@ -186,7 +193,7 @@ void USART5_IRQHandler(void)
         if (usart_recv_count > 0) // 接收到一帧数据
         {
             usart_recv_length = usart_recv_count;            // 接收数据长度
-            printf ("recv length:%d\r\n", usart_recv_length); // 打印接收数据长度
+            // printf ("recv length:%d\r\n", usart_recv_length); // 打印接收数据长度
             usart_recv_count  = 0;                           // 接收数据个数清零
         }
     }
@@ -196,3 +203,35 @@ void USART5_IRQHandler(void)
         usart_interrupt_flag_clear(USART5, USART_INT_FLAG_RBNE_ORERR);
     }
 }
+
+
+void USART0_IRQHandler(void)
+{
+    if (RESET != usart_interrupt_flag_get(USART0, USART_INT_FLAG_RBNE)) { // 获取USART中断标志位状态
+
+        uint8_t ch = (uint8_t)usart_data_receive(USART0); // USART接收数据功能
+        if (debug_recv_count < USART_RECV_BUF_SIZE) {
+            debug_recv_buf[debug_recv_count++] = ch;
+        }
+        usart_interrupt_flag_clear(USART0, USART_INT_FLAG_RBNE); // 清除USART中断标志位状态
+    }
+
+    if (RESET != usart_interrupt_flag_get(USART0, USART_INT_FLAG_IDLE)) // USART_INT_FLAG_IDLE:IDLE线检测中断标志
+    {
+        usart_interrupt_flag_clear(USART0, USART_INT_FLAG_IDLE);
+        usart_data_receive(USART0); /* 清除接收完成标志位 */ //！！！！！！！！！！！！！！！！！！！不加这个函数退不出中断
+        // (void)LOS_EventWrite(&g_shellInputEvent, 0x1); //事件通知接收完成
+        if (debug_recv_count > 0) // 接收到一帧数据
+        {
+            debug_recv_length = debug_recv_count;            // 接收数据长度
+            // printf ("recv length:%d\r\n", debug_recv_length); // 打印接收数据长度
+            debug_recv_count  = 0;                           // 接收数据个数清零
+        }
+    }
+
+    if(usart_interrupt_flag_get(USART0, USART_INT_FLAG_RBNE_ORERR) != RESET)
+    {
+        usart_interrupt_flag_clear(USART0, USART_INT_FLAG_RBNE_ORERR);
+    }
+}
+

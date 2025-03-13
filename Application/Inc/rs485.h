@@ -1,7 +1,7 @@
 /******************************************************* 
  * @Author: your name
  * @Date: 2025-03-06 10:24:15
- * @LastEditTime: 2025-03-08 17:34:44
+ * @LastEditTime: 2025-03-13 11:09:35
  * @LastEditors: your name
  * @Description: 
  * @FilePath: \GD_Test\Application\Inc\rs485.h
@@ -16,6 +16,27 @@
 #include "gd32f4xx_it.h"
 #include <stdio.h>
 #include <stdbool.h>
+
+extern bool Getmode; // 读取模式
+
+// 定义一个结构体来包含所有需要传递的参数
+typedef struct {
+    uint16_t slave_id;
+    uint8_t Func_code;
+    uint8_t Reg[2];
+    uint8_t Reg_Num[2];
+    uint8_t data_len;
+    uint8_t data[4];
+} ModbusWriteParams;
+
+
+typedef struct {
+    uint16_t slave_id;
+    uint8_t Func_code;
+    uint8_t Reg[2];
+    uint8_t Reg_Num[2];
+} ModbusReadParams;
+
 
 #define RS485_COM5_TX_PIN                 GPIO_PIN_6   // TAG 蓝牙或者打印串口 
 #define RS485_COM5_RX_PIN                 GPIO_PIN_7
@@ -41,13 +62,20 @@ void RS485_com_init(uint32_t com);
 // 发送函数
 void usart_send(uint32_t usart_periph, uint8_t* data, uint16_t len);
 
+void usart_send_string(uint32_t usart_periph, uint8_t *data);
+
 void RS485_power_init (void);
 
 void RS485_power_on(void);
 
 void RS485_power_off(void);
 
-void send_modbus_request(uint16_t slave_id,uint8_t Func_code, uint8_t Reg_Hig, uint8_t Reg_Low);
-double check_received_data(uint8_t type);
+// 读写函数
+void send_modbus_write(ModbusWriteParams *params);
+
+void send_modbus_write(ModbusWriteParams *params);
+
+void rs485_buf_clear(void);
+
 #endif // !RS485_H
 

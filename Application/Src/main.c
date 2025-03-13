@@ -35,6 +35,7 @@ OF SUCH DAMAGE.
 #include "rs485.h"
 #include "gd32f4xx_it.h"
 #include "crc.h"
+#include "cfg.h"
 #include "analyze_data.h"
 #include "gd32f4xx.h"
 #include "systick.h"
@@ -43,6 +44,7 @@ OF SUCH DAMAGE.
 
 void led_init(void);
 void led_flash(int times);
+
 
 /*!
     \brief      main function
@@ -64,10 +66,10 @@ int main(void)
     /* configure EVAL_COM0 */
     gd_eval_com_init(EVAL_COM0);
 
-    // 485‰∏≤Âè£Ê£ÄÊµã
+    // 485¥Æø⁄ºÏ≤‚
     RS485_com_init(RS485_COM5);
 
-    // Èõ®ÈáèËÆ°ÁîµÊ∫ê
+    // ”Í¡øº∆µÁ‘¥
     RS485_power_init();
     RS485_power_on();
 
@@ -75,13 +77,20 @@ int main(void)
     // gd_eval_key_init(KEY_TAMPER, KEY_MODE_GPIO);
 
     /* output a message on hyperterminal using printf function */
-    printf("test! \r\n");
+    // printf("test! \r\n");
+
     // usart_send(USART5, (uint8_t[]){0x7F, 0x04, 0x0a, 0x0f, 0x00, 0x02, 0x48, 0x0e}, sizeof((uint8_t[]){0x7F, 0x04, 0x0a, 0x0f, 0x00, 0x02, 0x48, 0x0e}));
     /* wait for completion of USART transmission */
 
     // uint8_t test[] = {0x7F, 0x04, 0x0a, 0x0f, 0x00, 0x02};
     
+    Title_printf();
+
+    Water_Gauge_Manual(); 
+    
     while (1) {
+
+        /******
         float data_test = 0.0;
         delay_1ms(3000);
         send_modbus_request(0x7f, 0x04, 0x0a, 0x0f);
@@ -95,6 +104,10 @@ int main(void)
         //     }
         //     usart_recv_length = 0;
         // }
+        ******/     
+       
+      auto_analyze_rs485();  
+
     }
 }
 

@@ -40,6 +40,8 @@ OF SUCH DAMAGE.
 #endif
 
 #include "gd32f4xx.h"
+#include "gd32f4xx_it.h"
+#include <string.h>
      
 /* exported types */
 typedef enum 
@@ -137,7 +139,10 @@ void gd_eval_key_init(key_typedef_enum key_num, keymode_typedef_enum key_mode);
 uint8_t gd_eval_key_state_get(key_typedef_enum button);
 /* configure COM port */
 void gd_eval_com_init(uint32_t com);
-
+// 清空打印缓存区
+void debug_buf_clear(void);
+// 测试大小端
+void debug_send(uint32_t usart_periph, uint8_t* data, uint16_t len);
 
 #ifdef __cplusplus
 }

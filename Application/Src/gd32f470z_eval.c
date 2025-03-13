@@ -216,5 +216,25 @@ void gd_eval_com_init(uint32_t com)
     usart_receive_config(com, USART_RECEIVE_ENABLE);
     usart_transmit_config(com, USART_TRANSMIT_ENABLE);
     usart_enable(com);
+
+    nvic_irq_enable(USART0_IRQn, 0, 1);                // 使能NVIC的中断
+	usart_interrupt_enable(USART0, USART_INT_RBNE); // 使能USART中断, USART_INT_RBNE：读数据缓冲区非空中断和过载错误中断
+	usart_interrupt_enable(USART0, USART_INT_IDLE); // USART_INT_IDLE：IDLE线检测中断
 }
 
+void debug_buf_clear()
+{
+    debug_recv_length = 0;
+    memset(&debug_recv_buf[0], 0, sizeof(debug_recv_buf)); // 清空接收缓冲区
+}
+
+// 串口发送单个字节  // 测试大小端使用
+void debug_send(uint32_t usart_periph, uint8_t* data, uint16_t len)
+{
+	// 循环发送数据
+	for(int i=0; i<len; i++)
+	{
+		usart_data_transmit(usart_periph, (uint8_t) (*(data + i)));  // USART发送数据功能
+		while(RESET == usart_flag_get(usart_periph, USART_FLAG_TBE));// 获取USART STAT/CHC/RFCS寄存器标志位,USART_FLAG_TBE:发送数据缓冲区空标志
+	}
+}
