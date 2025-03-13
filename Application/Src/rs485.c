@@ -9,6 +9,10 @@
  *******************************************************/
 #include "rs485.h"
 
+/******************************************************* 
+ * @description: rs485电源pin初始化
+ * @return {*}
+ *******************************************************/
 void RS485_power_init()
 {
     /* enable the led clock */
@@ -20,6 +24,10 @@ void RS485_power_init()
     GPIO_BC(GPIOF) = GPIO_PIN_15;
 }
 
+/******************************************************* 
+ * @description: RS485pin开关函数
+ * @return {*}
+ *******************************************************/
 void RS485_power_on()
 {
     GPIO_BOP(GPIOF) = GPIO_PIN_15;
@@ -31,6 +39,11 @@ void RS485_power_off()
     ;
 }
 
+/******************************************************* 
+ * @description: RS485串口初始化
+ * @param {uint32_t} com
+ * @return {*}
+ *******************************************************/
 void RS485_com_init(uint32_t com)
 {
     rcu_periph_clock_enable(RCU_GPIOC); // 使能外设时钟
@@ -58,7 +71,14 @@ void RS485_com_init(uint32_t com)
     usart_interrupt_enable(USART5, USART_INT_IDLE); // USART_INT_IDLE：IDLE线检测中断
 }
 
-// 串口发送单个字节
+
+/******************************************************* 
+ * @description: 串口发送数组
+ * @param {uint32_t} usart_periph
+ * @param {uint8_t} *data
+ * @param {uint16_t} len
+ * @return {*}
+ *******************************************************/
 void usart_send(uint32_t usart_periph, uint8_t *data, uint16_t len)
 {
     // 循环发送数据
@@ -68,8 +88,14 @@ void usart_send(uint32_t usart_periph, uint8_t *data, uint16_t len)
     }
 }
 
-// 串口发送字符串
 
+
+/******************************************************* 
+ * @description: 串口发送字符串
+ * @param {uint32_t} usart_periph
+ * @param {uint8_t} *data
+ * @return {*}
+ *******************************************************/
 void usart_send_string(uint32_t usart_periph, uint8_t *data)
 {
     uint16_t len = strlen((char *)data); // 获取字符串长度
@@ -81,6 +107,11 @@ void usart_send_string(uint32_t usart_periph, uint8_t *data)
 }
 
 
+/******************************************************* 
+ * @description: 雷达水位计寄存器读取
+ * @param {ModbusReadParams} *params
+ * @return {*}
+ *******************************************************/
 void send_modbus_read(ModbusReadParams *params)
 {
     uint8_t request[8];
@@ -102,6 +133,11 @@ void send_modbus_read(ModbusReadParams *params)
     printf("\n");
 }
 
+/******************************************************* 
+ * @description: 雷达水位计寄存器写入
+ * @param {ModbusWriteParams} *params
+ * @return {*}
+ *******************************************************/
 void send_modbus_write(ModbusWriteParams *params)
 {
     uint8_t request[9 + params->data_len]; // 根据数据长度动态调整request数组大小
@@ -126,65 +162,12 @@ void send_modbus_write(ModbusWriteParams *params)
     printf("\n");
 }
 
-// 接收数据并校验
-double check_received_data(uint8_t type)
-{
-    uint8_t received_status = 0;
-    double re_data          = 0;
-    // while (1) {
-    if (usart_recv_length > 0) {
-        for (uint8_t i = 0; i < usart_recv_length; i++) {
-            printf("0x%02x ", usart_recv_buf[i]);
-        }
-        // crc check
-        received_status = CRC16_Rec(usart_recv_buf, usart_recv_length);
-
-        if (received_status == 0) {
-            printf("crc check failed!\r\n");
-            usart_recv_length = 0;
-            memset(&usart_recv_buf[0], 0, sizeof(usart_recv_buf));
-            return -1;
-        }
-        if (received_status == 1) {
-            received_status = 0;
-            switch (type) {
-                case float_type_asend:
-                    /* code */
-                    re_data = analyze_in_queue_float(usart_recv_buf, usart_recv_length);
-                    break;
-                case float_type_desend:
-                    re_data = analyze_not_in_queue_float(usart_recv_buf, usart_recv_length);
-                    break;
-                case uint32_t_type_asend:
-                    /* code */
-                    re_data = analyze_in_queue_uint32(usart_recv_buf, usart_recv_length);
-                    break;
-                case uint32_t_type_desend:
-                    re_data = analyze_not_in_queue_uint32(usart_recv_buf, usart_recv_length);
-                    break;
-                case double_type_asend:
-                    re_data = analyze_in_queue_double(usart_recv_buf, usart_recv_length);
-                    break;
-                case double_type_desend:
-                    re_data = analyze_not_in_queue_double(usart_recv_buf, usart_recv_length);
-                    break;
-                default:
-                    break;
-            }
-            printf("crc check succeed!\r\n");
-            // 清空缓存 重启中断
-            usart_recv_length = 0;
-            memset(&usart_recv_buf[0], 0, sizeof(usart_recv_buf));
-            return re_data;
-        }
-    } else {
-        printf("no data received!\r\n");
-    }
-    return 0;
-    // break;
-}
 
 
+/******************************************************* 
+ * @description: rs485接收缓冲区清空
+ * @return {*}
+ *******************************************************/
 void rs485_buf_clear()
 {
     usart_recv_length = 0;

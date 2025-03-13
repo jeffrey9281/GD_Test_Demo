@@ -25,6 +25,5 @@ void analyze_debug_recv_buf_float();
 void analyze_debug_recv_buf_uint16();
 void Title_printf();
 void auto_analyze_rs485(); //自动解析接收缓冲区数据
-void transfer_string_to_hex(uint8_t *string_buffer, uint8_t *hex_buffer, int length);
-void transfer_string_to_uint16(uint8_t *string_buffer, uint16_t *value, int length);
+
 #endif // DEBUG

@@ -182,6 +182,11 @@ uint8_t gd_eval_key_state_get(key_typedef_enum button)
     \param[out] none
     \retval     none
 */
+/******************************************************* 
+ * @description: 打印串口配置
+ * @param {uint32_t} com
+ * @return {*}
+ *******************************************************/
 void gd_eval_com_init(uint32_t com)
 {
     /* enable GPIO clock */
@@ -237,4 +242,12 @@ void debug_send(uint32_t usart_periph, uint8_t* data, uint16_t len)
 		usart_data_transmit(usart_periph, (uint8_t) (*(data + i)));  // USART发送数据功能
 		while(RESET == usart_flag_get(usart_periph, USART_FLAG_TBE));// 获取USART STAT/CHC/RFCS寄存器标志位,USART_FLAG_TBE:发送数据缓冲区空标志
 	}
+}
+
+/* retarget the C library printf function to the USART */
+int fputc(int ch, FILE *f)  //在 #include <stdio.h>
+{
+    usart_data_transmit(EVAL_COM0, (uint8_t)ch);
+    while (RESET == usart_flag_get(EVAL_COM0, USART_FLAG_TBE));
+    return ch;
 }

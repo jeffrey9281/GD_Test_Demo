@@ -42,6 +42,7 @@ OF SUCH DAMAGE.
 #include "gd32f4xx.h"
 #include "gd32f4xx_it.h"
 #include <string.h>
+#include <stdio.h>
      
 /* exported types */
 typedef enum 

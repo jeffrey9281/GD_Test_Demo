@@ -42,6 +42,10 @@ ModbusReadParams readParams_Height = {
 
 // send_modbus_read(&readParams);
 
+/******************************************************* 
+ * @description: 设置title
+ * @return {*}
+ *******************************************************/
 void Title_printf(void)
 {
 
@@ -56,6 +60,10 @@ void Title_printf(void)
 }
 
 // 单片机是小端模式 网页转换的是大端数据
+/******************************************************* 
+ * @description: 串口setting配置函数
+ * @return {*}
+ *******************************************************/
 void Water_Gauge_Manual()
 {
 
@@ -115,6 +123,10 @@ void Water_Gauge_Manual()
     }
 }
 
+/******************************************************* 
+ * @description: 安装高度配置函数
+ * @return {*}
+ *******************************************************/
 void analyze_debug_recv_buf_float()
 {
     uint8_t buffer[4]; // 缓存数组
@@ -143,9 +155,13 @@ void analyze_debug_recv_buf_float()
     debug_buf_clear();
 }
 
+/******************************************************* 
+ * @description: 发送周期配置函数
+ * @return {*}
+ *******************************************************/
 void analyze_debug_recv_buf_uint16()
 {
-    int16_t period_value = 0;
+    uint16_t period_value = 0;
     transfer_string_to_uint16(debug_recv_buf, &period_value, debug_recv_length);
     printf("推送周期：%d设置成功\r\n", period_value);
     uint8_t high_byte          = (period_value >> 8) & 0xFF; // 获取高8位
@@ -171,6 +187,10 @@ void analyze_debug_recv_buf_uint16()
     Getmode = true;
 }
 
+/******************************************************* 
+ * @description: 自动解析水位
+ * @return {*}
+ *******************************************************/
 void auto_analyze_rs485()
 {
     if (Getmode) {
@@ -190,19 +210,3 @@ void auto_analyze_rs485()
     }
 }
 
-void transfer_string_to_hex(uint8_t *string_buffer, uint8_t *hex_buffer, int length)
-{
-    char str[length];
-    memcpy(str, &string_buffer[0], length); // 将数组中的数据复制到str缓冲区
-    str[length] = '\0';          // 添加字符串结束符
-    float f                = atof(str);     // 将字符串转换为浮点数
-    memcpy(hex_buffer, &f, sizeof(f));             // 将浮点数转换为16进制数组
-}
-
-void transfer_string_to_uint16(uint8_t *string_buffer, uint16_t *value, int length)
-{
-    for (int i = 0; i < length; i++) {
-        string_buffer[i] = string_buffer[i] - '0';                                                 // 将字符转换为对应的数字
-        *value    += (string_buffer[i] * pow(10, length - i - 1)); // 16位数据格式       
-    }
-}

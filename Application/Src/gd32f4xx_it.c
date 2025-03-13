@@ -174,6 +174,10 @@ void SysTick_Handler(void)
     delay_decrement();
 }
 
+/******************************************************* 
+ * @description: RS458中断函数
+ * @return {*}
+ *******************************************************/
 void USART5_IRQHandler(void)
 {
     if (RESET != usart_interrupt_flag_get(USART5, USART_INT_FLAG_RBNE)) { // 获取USART中断标志位状态
@@ -205,6 +209,10 @@ void USART5_IRQHandler(void)
 }
 
 
+/******************************************************* 
+ * @description: debug中断函数
+ * @return {*}
+ *******************************************************/
 void USART0_IRQHandler(void)
 {
     if (RESET != usart_interrupt_flag_get(USART0, USART_INT_FLAG_RBNE)) { // 获取USART中断标志位状态
